@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Транспортна компанія{% endblock %}</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4237/4237625.png" type="image/png">
+    <script>
+        if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/static/service-worker.js");
+        }
+    </script>
+
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Транспортна Компанія</div>
+        <ul class="nav-menu">
+            <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Головна</a></li>
+            <li><a href="{{ url_for('orders') }}" class="{% if request.endpoint == 'orders' %}active{% endif %}">Замовлення</a></li>
+            <li><a href="{{ url_for('customers') }}" class="{% if request.endpoint == 'customers' %}active{% endif %}">Клієнти</a></li>
+            <li><a href="{{ url_for('drivers') }}" class="{% if request.endpoint == 'drivers' %}active{% endif %}">Водії</a></li>
+            <li><a href="{{ url_for('vehicles') }}" class="{% if request.endpoint == 'vehicles' %}active{% endif %}">Транспорт</a></li>
+            <li><a href="{{ url_for('routes') }}" class="{% if request.endpoint == 'routes' %}active{% endif %}">Маршрути</a></li>
+        </ul>
+        <div class="search-box">
+            <form action="{{ url_for('search') }}" method="GET">
+                <input type="text" name="q" placeholder="Пошук замовлень..." class="search-input">
+                <button type="submit" class="search-btn">Пошук</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <button class="close-alert" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Клієнти{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Управління клієнтами</h1>
+</div>
+
+<div class="section">
+    <form action="{{ url_for('add_customer') }}" method="POST">
+        <div class="form-group">
+            <label>Ім’я</label>
+            <input type="text" name="name" required>
+        </div>
+        <div class="form-group">
+            <label>Телефон</label>
+            <input type="text" name="phone">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email">
+        </div>
+        <button type="submit" class="btn btn-primary">Додати клієнта</button>
+    </form>
+</div>
+
+<div class="section">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr><th>Ім’я</th><th>Телефон</th><th>Email</th><th>Замовлень</th><th>Дії</th></tr>
+            </thead>
+            <tbody>
+                {% for c in customers %}
+                <tr>
+                    <td>{{ c[1] }}</td>
+                    <td>{{ c[2] }}</td>
+                    <td>{{ c[3] }}</td>
+                    <td>{{ c[4] }}</td>
+                    <td class="action-buttons">
+                        <a href="{{ url_for('delete_customer', customer_id=c[0]) }}" class="btn btn-sm btn-danger">Видалити</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
