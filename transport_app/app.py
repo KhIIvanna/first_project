@@ -2,16 +2,17 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
+import os   # ✅ додано для роботи з Environment Variables
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Для flash повідомлень
 
-# --- Параметри підключення до MySQL ---
+# --- Параметри підключення до MySQL через Environment Variables ---
 db_config = {
-    "host": "localhost",
-    "user": "root",
-    "password": "HBr</24t",  # ЗАМІНИ на свій пароль
-    "database": "transport_company"
+    "host": os.getenv("DB_HOST"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME")
 }
 
 def get_db_connection():
@@ -58,10 +59,10 @@ def index():
     """)
     stats = cursor.fetchone()
     stats_dict = {
-    'total': stats[0] if stats[0] is not None else '0',
-    'new': stats[1] if stats[1] is not None else '0',
-    'in_progress': stats[2] if stats[2] is not None else '0',
-    'delivered': stats[3] if stats[3] is not None else '0'
+        'total': stats[0] if stats[0] is not None else '0',
+        'new': stats[1] if stats[1] is not None else '0',
+        'in_progress': stats[2] if stats[2] is not None else '0',
+        'delivered': stats[3] if stats[3] is not None else '0'
     }
     
     conn.close()
