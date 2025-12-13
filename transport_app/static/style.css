@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
-    background-color: #f0e8d2;
+    background-color: #003366;
     color: #003366;
     line-height: 1.6;
     padding-bottom: 80px;
@@ -21,6 +21,8 @@ body {
     justify-content: space-between;
     align-items: center;
     position: static;
+    width: 100%; 
+    box-sizing: border-box;
 }
 
 .nav-brand {
