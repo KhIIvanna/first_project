@@ -1,26 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2 import Error
 from datetime import datetime
-import os   # ✅ додано для роботи з Environment Variables
+import os
+from dotenv import load_dotenv
+
+# Завантаження змінних середовища з .env
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Для flash повідомлень
 
-# --- Параметри підключення до MySQL через Environment Variables ---
-db_config = {
-    "host": os.getenv("DB_HOST"),
-    "port": int(os.getenv("DB_PORT", "3306")),
-    "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
-    "database": os.getenv("DB_NAME")
-}
-
+# --- Параметри підключення до Postgres ---
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
-    """Створює підключення до БД"""
+    """Створює підключення до Postgres"""
     try:
-        conn = mysql.connector.connect(**db_config)
+        conn = psycopg2.connect(DATABASE_URL)
         return conn
     except Error as e:
         print(f"Помилка підключення до БД: {e}")
@@ -35,8 +32,6 @@ def index():
         return render_template("index.html", orders=[], stats={})
     
     cursor = conn.cursor()
-    
-    # Отримання замовлень
     cursor.execute("""
         SELECT o.order_id, c.name, c.phone, v.plate_number, d.name,
                r.start_location, r.end_location, r.distance_km,
@@ -49,14 +44,13 @@ def index():
         ORDER BY o.created_at DESC
     """)
     orders = cursor.fetchall()
-    
-    # Статистика
+
     cursor.execute("""
         SELECT 
             COUNT(*) as total,
-            SUM(CASE WHEN status = 'нове' THEN 1 ELSE 0 END) as new_orders,
-            SUM(CASE WHEN status = 'в дорозі' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status = 'доставлено' THEN 1 ELSE 0 END) as delivered
+            SUM(CASE WHEN status = 'новий' THEN 1 ELSE 0 END) as new_orders,
+            SUM(CASE WHEN status = 'в процесі' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status = 'завершено' THEN 1 ELSE 0 END) as delivered
         FROM orders
     """)
     stats = cursor.fetchone()
@@ -340,8 +334,8 @@ def orders():
         return render_template("orders.html", orders=[], customers=[], vehicles=[], routes=[])
     
     cursor = conn.cursor()
+
     
-    # Отримання всіх замовлень
     cursor.execute("""
         SELECT o.order_id, c.name, v.plate_number, 
                r.start_location, r.end_location, o.status, o.created_at
@@ -353,7 +347,7 @@ def orders():
     """)
     orders_list = cursor.fetchall()
     
-    # Списки для форми додавання
+
     cursor.execute("SELECT customer_id, name FROM customers")
     customers_list = cursor.fetchall()
     
@@ -384,7 +378,7 @@ def add_order():
     try:
         cursor.execute("""
             INSERT INTO orders (customer_id, vehicle_id, route_id, status)
-            VALUES (%s, %s, %s, 'нове')
+            VALUES (%s, %s, %s, 'новий')
         """, (customer_id, vehicle_id, route_id))
         conn.commit()
         flash("Замовлення успішно створено!", "success")
@@ -446,7 +440,7 @@ def search():
         return redirect(url_for('index'))
     
     cursor = conn.cursor()
-    
+
     sql = """
         SELECT o.order_id, c.name, c.phone, v.plate_number, d.name,
                r.start_location, r.end_location, r.distance_km,
@@ -478,5 +472,6 @@ def search():
     
     return render_template("search_results.html", orders=orders, query=query, status=status_filter)
 
+# ==================== ЗАПУСК СЕРВЕРА ====================
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)
