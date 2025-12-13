@@ -5,13 +5,12 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-# Завантаження змінних середовища з .env
+
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Для flash повідомлень
+app.secret_key = 'your_secret_key_here'  
 
-# --- Параметри підключення до Postgres ---
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
@@ -23,7 +22,7 @@ def get_db_connection():
         print(f"Помилка підключення до БД: {e}")
         return None
 
-# ==================== ГОЛОВНА СТОРІНКА ====================
+
 @app.route("/")
 def index():
     conn = get_db_connection()
@@ -64,7 +63,7 @@ def index():
     conn.close()
     return render_template("index.html", orders=orders, stats=stats_dict)
 
-# ==================== КЛІЄНТИ ====================
+
 @app.route("/customers")
 def customers():
     conn = get_db_connection()
@@ -129,7 +128,7 @@ def delete_customer(customer_id):
     
     return redirect(url_for('customers'))
 
-# ==================== ВОДІЇ ====================
+
 @app.route("/drivers")
 def drivers():
     conn = get_db_connection()
@@ -193,7 +192,7 @@ def delete_driver(driver_id):
     
     return redirect(url_for('drivers'))
 
-# ==================== ТРАНСПОРТ ====================
+
 @app.route("/vehicles")
 def vehicles():
     conn = get_db_connection()
@@ -260,7 +259,7 @@ def delete_vehicle(vehicle_id):
     
     return redirect(url_for('vehicles'))
 
-# ==================== МАРШРУТИ ====================
+
 @app.route("/routes")
 def routes():
     conn = get_db_connection()
@@ -325,7 +324,7 @@ def delete_route(route_id):
     
     return redirect(url_for('routes'))
 
-# ==================== ЗАМОВЛЕННЯ ====================
+
 @app.route("/orders")
 def orders():
     conn = get_db_connection()
@@ -335,7 +334,7 @@ def orders():
     
     cursor = conn.cursor()
 
-    
+
     cursor.execute("""
         SELECT o.order_id, c.name, v.plate_number, 
                r.start_location, r.end_location, o.status, o.created_at
@@ -425,7 +424,7 @@ def delete_order(order_id):
     
     return redirect(url_for('orders'))
 
-# ==================== ПОШУК ====================
+
 @app.route("/search")
 def search():
     query = request.args.get('q', '')
@@ -472,6 +471,6 @@ def search():
     
     return render_template("search_results.html", orders=orders, query=query, status=status_filter)
 
-# ==================== ЗАПУСК СЕРВЕРА ====================
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
