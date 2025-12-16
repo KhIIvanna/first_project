@@ -4,7 +4,11 @@ from psycopg2 import Error
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import pytz
 
+def convert_to_local(utc_dt):
+    local_tz = pytz.timezone('Europe/Kyiv')
+    return utc_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
 
 load_dotenv()
 
@@ -345,7 +349,10 @@ def orders():
         ORDER BY o.created_at DESC
     """)
     orders_list = cursor.fetchall()
-    
+    orders_list = [
+    (o[0], o[1], o[2], o[3], o[4], o[5], convert_to_local(o[6]))
+    for o in orders_list
+    ]
 
     cursor.execute("SELECT customer_id, name FROM customers")
     customers_list = cursor.fetchall()
