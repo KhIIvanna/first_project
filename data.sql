@@ -1,4 +1,6 @@
-ROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TYPE IF EXISTS order_status CASCADE;
+
 DROP TABLE IF EXISTS vehicles CASCADE;
 DROP TABLE IF EXISTS routes CASCADE;
 DROP TABLE IF EXISTS drivers CASCADE;
@@ -37,6 +39,7 @@ CREATE TABLE orders (
   customer_id INT REFERENCES customers(customer_id),
   vehicle_id INT REFERENCES vehicles(vehicle_id),
   route_id INT REFERENCES routes(route_id),
-  status VARCHAR(50) DEFAULT 'нове',
+  status VARCHAR(50) DEFAULT 'новий',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
