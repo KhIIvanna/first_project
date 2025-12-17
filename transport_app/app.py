@@ -6,9 +6,9 @@ import os
 from dotenv import load_dotenv
 import pytz
 
-def convert_to_local(utc_dt):
+def convert_to_local(dt):
     local_tz = pytz.timezone('Europe/Kyiv')
-    return utc_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
+    return dt.astimezone(local_tz)
 
 load_dotenv()
 
@@ -335,10 +335,8 @@ def orders():
     if not conn:
         flash("Помилка підключення до бази даних", "error")
         return render_template("orders.html", orders=[], customers=[], vehicles=[], routes=[])
-    
+
     cursor = conn.cursor()
-
-
     cursor.execute("""
         SELECT o.order_id, c.name, v.plate_number, 
                r.start_location, r.end_location, o.status, o.created_at
@@ -348,51 +346,63 @@ def orders():
         JOIN routes r ON o.route_id = r.route_id
         ORDER BY o.created_at DESC
     """)
-    orders_list = cursor.fetchall()
+    orders_raw = cursor.fetchall()   # ← нова назва
+
     orders_list = [
-    (o[0], o[1], o[2], o[3], o[4], o[5], convert_to_local(o[6]))
-    for o in orders_list
+        {
+            "order_id": o[0],
+            "customer": o[1],
+            "vehicle": o[2],
+            "start": o[3],
+            "end": o[4],
+            "status": o[5],
+            "created_at": convert_to_local(o[6])
+        }
+        for o in orders_raw
     ]
 
     cursor.execute("SELECT customer_id, name FROM customers")
     customers_list = cursor.fetchall()
-    
+
     cursor.execute("SELECT vehicle_id, plate_number FROM vehicles")
     vehicles_list = cursor.fetchall()
-    
+
     cursor.execute("SELECT route_id, start_location, end_location FROM routes")
     routes_list = cursor.fetchall()
-    
+
     conn.close()
-    return render_template("orders.html", orders=orders_list, 
-                         customers=customers_list, 
-                         vehicles=vehicles_list, 
-                         routes=routes_list)
+    return render_template("orders.html",
+                           orders=orders_list,
+                           customers=customers_list,
+                           vehicles=vehicles_list,
+                           routes=routes_list)
 
 @app.route("/orders/add", methods=["POST"])
 def add_order():
     customer_id = request.form["customer_id"]
     vehicle_id = request.form["vehicle_id"]
     route_id = request.form["route_id"]
-    
+
     conn = get_db_connection()
     if not conn:
         flash("Помилка підключення до бази даних", "error")
         return redirect(url_for('orders'))
-    
+
     cursor = conn.cursor()
     try:
+        now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+
         cursor.execute("""
-            INSERT INTO orders (customer_id, vehicle_id, route_id, status)
-            VALUES (%s, %s, %s, 'новий')
-        """, (customer_id, vehicle_id, route_id))
+            INSERT INTO orders (customer_id, vehicle_id, route_id, status, created_at)
+            VALUES (%s, %s, %s, 'новий', %s)
+        """, (customer_id, vehicle_id, route_id, now_utc))
         conn.commit()
         flash("Замовлення успішно створено!", "success")
     except Error as e:
         flash(f"Помилка: {e}", "error")
     finally:
         conn.close()
-    
+
     return redirect(url_for('index'))
 
 @app.route("/orders/update/<int:order_id>", methods=["POST"])

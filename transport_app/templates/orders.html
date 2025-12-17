@@ -60,23 +60,23 @@
             <tbody>
                 {% for o in orders %}
                 <tr>
-                    <td>#{{ o[0] }}</td>
-                    <td>{{ o[1] }}</td>
-                    <td>{{ o[2] }}</td>
-                    <td>{{ o[3] }} → {{ o[4] }}</td>
+                    <td>#{{ o.order_id }}</td>
+                    <td>{{ o.customer }}</td>
+                    <td>{{ o.vehicle }}</td>
+                    <td>{{ o.start }} → {{ o.end }}</td>
                     <td>
-                        <form action="{{ url_for('update_order', order_id=o[0]) }}" method="POST" class="inline-form">
+                        <form action="{{ url_for('update_order', order_id=o.order_id) }}" method="POST" class="inline-form">
                             <select name="status" class="status-select">
-                                <option value="нове" {% if o[5]=='нове' %}selected{% endif %}>нове</option>
-                                <option value="в дорозі" {% if o[5]=='в дорозі' %}selected{% endif %}>в дорозі</option>
-                                <option value="завершено" {% if o[5]=='завершено' %}selected{% endif %}>завершено</option>
+                                <option value="нове" {% if o.status=='нове' %}selected{% endif %}>нове</option>
+                                <option value="в дорозі" {% if o.status=='в дорозі' %}selected{% endif %}>в дорозі</option>
+                                <option value="завершено" {% if o.status=='завершено' %}selected{% endif %}>завершено</option>
                             </select>
                             <button type="submit" class="btn btn-sm btn-primary">Оновити</button>
                         </form>
                     </td>
-                    <td>{{ o[6] }}</td>
+                    <td>{{ o.created_at }}</td>
                     <td class="action-buttons">
-                        <a href="{{ url_for('delete_order', order_id=o[0]) }}" class="btn btn-sm btn-danger">Видалити</a>
+                        <a href="{{ url_for('delete_order', order_id=o.order_id) }}" class="btn btn-sm btn-danger">Видалити</a>
                     </td>
                 </tr>
                 {% endfor %}
